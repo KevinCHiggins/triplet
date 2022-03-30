@@ -2,6 +2,7 @@ package main
 
 import (
 	"kevinhiggins/tb2d"
+	"fmt"
 
 )
 
@@ -15,12 +16,16 @@ func play() {
 	// This bounds thing is misnamed, as it's holding position... bounds sounds more passive
 	bounds := but1.GetBounds()
 	but1.SetBounds(tb2d.Rect{sideWidth - bounds.W, ViewportHeight - bounds.H, bounds.W, bounds.H})
+	game := TicTacToeGame{}
+	tg1 := tb2d.NewTileGridFromFiles([]string{"tile.bmp","x.bmp","o.bmp"}, func(gridX, gridY int) {
+		err := game.claimSquare(gridX, gridY)
+		if err != nil {
+			fmt.Println("Error: %w", err)
+		}
+	}, 3, 3, 200, 0)
 
-	tg1 := tb2d.NewTileGridFromFiles([]string{"tile.bmp"}, func(gridX, gridY int) {println("TileGrid", gridX, gridY, "clicked")}, 3, 3, 200, 0)
 
-	println(tg1.GetBounds().X)
-	println(but1)
-	//tb2d.SetUpWindow(800, 600, false, &but1)
+	game.tileGrid = tg1
 	tb2d.SetUpWindow(ViewportWidth, ViewportHeight, false)
 
 	
