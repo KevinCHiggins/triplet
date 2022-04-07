@@ -1,36 +1,37 @@
 package main
 
-import (
-	"kevinhiggins/tb2d"
-	"fmt"
+type Square struct {
+	X int
+	Y int // confusing what with X and Os
+}
 
-)
+type Triplet [3]Square
 
-const ViewportWidth = 800
-const ViewportHeight = 600
+var triplets [8]Triplet
 
-func play() {
 
-	sideWidth := (ViewportWidth - ViewportHeight) / 2
-	but1 := tb2d.NewButtonFromFile("reset.bmp", func() {println("Button 1 clicked")}, 0, 0)
-	// This bounds thing is misnamed, as it's holding position... bounds sounds more passive
-	bounds := but1.GetBounds()
-	but1.SetBounds(tb2d.Rect{sideWidth - bounds.W, ViewportHeight - bounds.H, bounds.W, bounds.H})
-	game := TicTacToeGame{}
-	tg1 := tb2d.NewTileGridFromFiles([]string{"tile.bmp","x.bmp","o.bmp"}, func(gridX, gridY int) {
-		err := game.claimSquare(gridX, gridY)
-		if err != nil {
-			fmt.Println("Error: %w", err)
+func fillTriplets() {
+	triplets = [8]Triplet{
+		Triplet{Square{0, 0}, Square{0, 1}, Square{0, 2}},
+		Triplet{Square{1, 0}, Square{1, 1}, Square{1, 2}},
+		Triplet{Square{2, 0}, Square{2, 1}, Square{2, 2}},
+		Triplet{Square{0, 0}, Square{1, 0}, Square{2, 0}},
+		Triplet{Square{0, 1}, Square{1, 1}, Square{2, 1}},
+		Triplet{Square{0, 2}, Square{1, 2}, Square{2, 2}},
+		Triplet{Square{0, 0}, Square{1, 1}, Square{2, 2}},
+		Triplet{Square{0, 2}, Square{1, 1}, Square{2, 0}},
+	}
+}
+
+func tripletsContaining(s Square) []Triplet{
+	var searchResults []Triplet
+	for _, t := range triplets {
+		for _, squareInTriplet := range t {
+			if s == squareInTriplet {
+				searchResults = append(searchResults, t)
+				break
+			}
 		}
-	}, 3, 3, 200, 0)
-
-
-	game.tileGrid = tg1
-	tb2d.SetUpWindow(ViewportWidth, ViewportHeight, false)
-
-	
-	tb2d.Start(func() {print("Y")})
-	//but2 := tb2d.NewGraphicFromFile("quit.bmp")
-	//tile := tb2d.NewGraphicFromFile("tile.bmp")
-
+	}
+	return searchResults
 }
