@@ -39,7 +39,8 @@ func aiSelectedPlayableMove(game TicTacToeGame) (int, int) {
 	}
 	// SHOULD BE RANDOMLY SELECTED, HOWEVER FOR NOW WE TAKE THE FIRST
 	fmt.Println("Value was", greatestSum)
-	return bestSquaresToPlay[0].X, bestSquaresToPlay[0].Y
+	i := rand.Intn(len(bestSquaresToPlay))
+	return bestSquaresToPlay[i].X, bestSquaresToPlay[i].Y
 }
 
 func aiValueTripletMarkingsForPlayer(xAmount, oAmount, player int) int {
