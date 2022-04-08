@@ -8,4 +8,4 @@ I have built this project on Linux (Xubuntu) only, so far.
 
 Kevin Higgins, 08/04/22
 
-![Screenshot of game showing Tic Tac Toe board with some Xs and Os][https://github.com/KevinCHiggins/triplet/raw/main/screenshot.png]
+![Screenshot of game showing Tic Tac Toe board with some Xs and Os](https://github.com/KevinCHiggins/triplet/raw/main/screenshot.png)
