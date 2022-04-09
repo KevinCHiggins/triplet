@@ -25,10 +25,26 @@ const (
 var lastTurnTimestamp time.Time
 
 type TicTacToeGame struct {
-	//board [3][3]SquareState
 	aiPlayer map[int]bool // zero value is two human players
 	turnsTaken int
-	tileGrid *tb2d.TileGrid
+	tileGrid *tb2d.TileGrid // would be nicer to separate out this detail
+	message *tb2d.Button
+}
+
+// zero turns and tile states, but leave the loaded graphics & AI config
+func (game *TicTacToeGame) resetPlay() {
+	fmt.Println("Reset")
+	game.turnsTaken = 0
+	for x := 0; x < 3; x++ {
+		for y := 0; y < 3; y++ {
+			game.tileGrid.SetTileAt(x, y, 0)
+		}
+	}
+	if game.message != nil {
+		tb2d.DeleteButton(game.message)
+		game.message = nil
+	}
+	game.tileGrid.SetDirtyFlag()
 }
 
 func (game *TicTacToeGame) isAiTurn() bool {
@@ -58,7 +74,7 @@ func (game *TicTacToeGame) hasUnmarkedSquare(x, y int) bool {
 }
 
 
-func (game *TicTacToeGame) getMarkingsInTriplet(t Triplet) (xAmount, oAmount int) {
+func (game *TicTacToeGame) getMarkingsInTriplet(t TripletPosition) (xAmount, oAmount int) {
 	for _, square := range t {
 		switch game.tileGrid.GetTileAt(square.X, square.Y) {
 		case X:
@@ -70,72 +86,46 @@ func (game *TicTacToeGame) getMarkingsInTriplet(t Triplet) (xAmount, oAmount int
 	return xAmount, oAmount
 }
 
-
-/*
-func (game *TicTacToeGame) claimSquare(x, y int) error {
-	if !game.hasUnmarkedSquare(x, y) {
-		return fmt.Errorf("Game has no unmarked square at %v, %v", x, y)
-	}
-
-	switch game.evaluateState() {
-	case XToMove:
-		game.tileGrid.SetTileAt(x, y, X)
-	case OToMove:
-		game.tileGrid.SetTileAt(x, y, O)
-	default:
-		return fmt.Errorf("Game is over")
-	}
-	lastTurnTimestamp = time.Now()
-	game.tileGrid.SetDirtyFlag(true)
-	game.turnsTaken++
-	if game.evaluateState() == XWon {
-		fmt.Println("X won")
-	} else if game.evaluateState() == OWon {
-		fmt.Println("O won")
-	}
-
-	return nil
-}
-*/
-
 func (game *TicTacToeGame) makeMove(x, y int) {
 	game.tileGrid.SetTileAt(x, y, game.getCurrentPlayer())
 	lastTurnTimestamp = time.Now()
-	game.tileGrid.SetDirtyFlag(true)
+	game.tileGrid.SetDirtyFlag()
 	game.turnsTaken++
 	if game.evaluateState() == XWon {
-		fmt.Println("X won")
+		game.setMessageFromFile("xwon.bmp")
 	} else if game.evaluateState() == OWon {
-		fmt.Println("O won")
+		game.setMessageFromFile("owon.bmp")
+	} else if game.evaluateState() == Draw {
+		game.setMessageFromFile("draw.bmp")
 	}
 }
-// I'll leave out detecting upcoming draws...
+
+func (game TicTacToeGame) setMessageFromFile(filename string) {
+	msg := tb2d.NewButtonFromFile(filename, func() {}, 0, 0)
+	msg.CenterInRect(game.tileGrid.GetBounds())
+	game.message = msg
+}
+
 func (game *TicTacToeGame) evaluateState() State {
-	tg := game.tileGrid.GetGrid()
-	// one could do this with functions, but the baked data is more concise
-	switch {
-	case
-		(tg[0] == X && tg[1] == X && tg[2] == X) ||
-		(tg[3] == X && tg[4] == X && tg[5] == X) ||
-		(tg[6] == X && tg[7] == X && tg[8] == X) ||
-		(tg[0] == X && tg[3] == X && tg[6] == X) ||
-		(tg[1] == X && tg[4] == X && tg[7] == X) ||
-		(tg[2] == X && tg[5] == X && tg[8] == X) ||
-		(tg[0] == X && tg[4] == X && tg[8] == X) ||
-		(tg[2] == X && tg[4] == X && tg[6] == X):
+	winnableTripletForXFound := false // needed if we get to the 9th turn
+	winnableTripletForOFound := false
+	for _, t := range triplets {
+		xAmount, oAmount := game.getMarkingsInTriplet(t)
+		if xAmount == 3 {
 			return XWon
-	case
-		(tg[0] == O && tg[1] == O && tg[2] == O) ||
-		(tg[3] == O && tg[4] == O && tg[5] == O) ||
-		(tg[6] == O && tg[7] == O && tg[8] == O) ||
-		(tg[0] == O && tg[3] == O && tg[6] == O) ||
-		(tg[1] == O && tg[4] == O && tg[7] == O) ||
-		(tg[2] == O && tg[5] == O && tg[8] == O) ||
-		(tg[0] == O && tg[4] == O && tg[8] == O) ||
-		(tg[2] == O && tg[4] == O && tg[6] == O):
+		} else if oAmount == 3 {
 			return OWon
+		}
+		if xAmount == 0 {
+			winnableTripletForOFound = true
+		}
+		if oAmount == 0 {
+			winnableTripletForXFound = true
+		}
 	}
-	if game.turnsTaken == 9 {
+	if !winnableTripletForOFound && !winnableTripletForXFound {
+		return Draw
+	} else if game.turnsTaken == 8 && !winnableTripletForXFound {
 		return Draw
 	} else {
 		p := game.getCurrentPlayer()

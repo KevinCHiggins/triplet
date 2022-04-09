@@ -9,7 +9,15 @@ func aiSeedRand(seed int64) {
 	rand.Seed(seed)
 }
 
-func aiSelectedPlayableMove(game TicTacToeGame) (int, int) {
+func aiSelectedMixedPlayableMove(game TicTacToeGame) (int, int) {
+	if rand.Intn(4) == 0 {
+		return aiSelectedRandomPlayableMove(game)
+	} else {
+		return aiSelectedPerfectPlayableMove(game)
+	}
+}
+
+func aiSelectedPerfectPlayableMove(game TicTacToeGame) (int, int) {
 	fmt.Println("DEBUG")
 	var bestSquaresToPlay []Square
 	var summedVals, greatestSum int
@@ -57,7 +65,7 @@ func aiValueTripletMarkingsForPlayer(xAmount, oAmount, player int) int {
 	} else if e == 1 && p == 1 {
 		return 0
 	} else if e == 2 {
-		return 4
+		return 7
 	} else if e == 0 && p == 1 {
 		return 3
 	} else if e == 0 && p == 2 {
